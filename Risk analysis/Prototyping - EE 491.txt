@@ -1,5 +1,0 @@
-Prototyping HW:
-MCU ( https://www.adafruit.com/product/4693?gclid=Cj0KCQjwsrWZBhC4ARIsAGGUJurD8QE4VDsK-aUL2Us8hlU_UgvgJMuOzVDMM0vn0s6JRXUC17QwbZoaAgAOEALw_wcB
-BMS IC ( https://www.mouser.com/ProductDetail/Texas-Instruments/BQ7693007DBT?qs=sGAEpiMZZMug9GoBKXZ75zv7Shk6gbm2YtmDy4%2FvEahoHwes23zFiw%3D%3D
-Current sense resistor
-Power FETS
