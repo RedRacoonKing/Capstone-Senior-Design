@@ -1,3 +1,11 @@
+/**
+ * @file master_reader.cpp
+ * @author Tyler, Joey
+ * @brief Uses I2C communication to read from specific BMS IC registers and print the output in the serial monitor.
+ *        ex. In this code, it will read from BMS IC's register (0x09), and return the output 172 (0xAC), because 
+ *            the register is set to 0x10101100, by default.
+ */
+
 #include <Wire.h>
 #include <Arduino.h>
 
