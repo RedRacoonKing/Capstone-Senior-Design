@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <ezButton.h>   // supports button debounce
+#include <LCD_CONFIG.h>
 
 #define LED_RED 11
 #define LED_GREEN 13
@@ -52,6 +53,7 @@ void led_logging(){
         analogWrite(LED_BLUE, 128);
 
         // TODO: implement function that logs data
+
     }
 
     if (led_state == LOW){
