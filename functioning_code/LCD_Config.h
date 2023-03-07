@@ -16,18 +16,13 @@
   Pin 8 (RED) = LED+ w/ volt divider
 */ 
 
-#define RES 21 // Reset signal           
-#define CS 33 // Chip select signal              
-#define RS 19 // Register select signal (A0)    
-#define SC 35 // Serial clock signal            
-#define SI 37 // Serial data signal  
+#define RES 21  // reset signal           
+#define CS 33   // chip select signal              
+#define RS 19   // register select signal (A0)    
+#define SC 35   // serial clock signal            
+#define SI 37   // serial data signal  
 
-
-// unordered_map<int><int> number_lut = {0:0
-
-// };
-
-
+// hexadecimal representation of UI Bitmap
 unsigned char bms_ui[] = {
   0x00, 0x06, 0x06, 0xFE, 0xFE, 0x06, 0x06, 0x00, 0x00, 0xFE, 0xFE, 0xD6, 0xD6, 0xD6, 0xD6, 0x00,  // T E
   0x00, 0xFE, 0x0C, 0x38, 0x38, 0x0C, 0xFE, 0x00, 0x00, 0xFE, 0xFE, 0x36, 0x36, 0x3E, 0x3E, 0x00,  // M P 
@@ -66,10 +61,11 @@ unsigned char bms_ui[] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // end of 4th LCD "row"
 };
 
-void data_write(unsigned char d) // Data Output Serial Interface
+// data_write(): write physical data to LCD screen
+void data_write(unsigned char d)
 {
   digitalWrite(CS, LOW);
-  digitalWrite(RS, HIGH);
+  digitalWrite(RS, HIGH); // AO = 1 for writing data
   for (unsigned int n = 0; n < 8; n++)
   {
     if ((d & 0x80) == 0x80)
@@ -87,7 +83,8 @@ void data_write(unsigned char d) // Data Output Serial Interface
   digitalWrite(CS, HIGH);
 }
 
-void comm_write(unsigned char d) // Command Output Serial Interface
+// comm_write(): write command/instruction to LCD screen
+void comm_write(unsigned char d) 
 {
   digitalWrite(CS, LOW);
   digitalWrite(RS, LOW);
@@ -108,7 +105,8 @@ void comm_write(unsigned char d) // Command Output Serial Interface
   digitalWrite(CS, HIGH);
 }
 
-void DispPic(unsigned char *lcd_string)
+// disp_pic(): displays input hexadecimal bitmap array (graphic)
+void disp_pic(unsigned char *lcd_string)
 {
   unsigned char page = 0xB0;
   comm_write(0xAE); // Display OFF
@@ -128,7 +126,8 @@ void DispPic(unsigned char *lcd_string)
   comm_write(0xAF);
 }
 
-void ClearLCD(unsigned char *lcd_string)
+// clear_pic(): removes picture from LCD screen
+void clear_lcd(unsigned char *lcd_string)
 {
   unsigned char page = 0xB0;
   comm_write(0xAE); // Display OFF
@@ -148,6 +147,7 @@ void ClearLCD(unsigned char *lcd_string)
   comm_write(0xAF);
 }
 
+// lcd_setup(): configures required pins as OUTPUT, uses comm_write() to set display settings
 void lcd_setup(){
     Serial.println("lcd_setup(): Running...");
 
@@ -172,19 +172,19 @@ void lcd_setup(){
     comm_write(0xAF); // Display ON
 }
 
+// lcd_display_ui(): calls disp_pic helper function
 void lcd_display_ui(){
-    delay(10);
-    Serial.println("lcd_display_ui: Running...");
-    while(1)
-    {
-        DispPic(bms_ui);
-        delay(2000);
-    }
+  delay(10);
+  Serial.println("lcd_display_ui: Running...");
+  disp_pic(bms_ui);
 }
 
-// void lcd_recieve_info(){
-//   // TODO: read information from BM IC registers, manipulate arrays
-// }
+// lcd_clear_ui(): calls clear_lcd helper function
+void lcd_clear_ui(){
+  delay(10);
+  clear_lcd(bms_ui);
+  // delay(2000);
+}
 
 #endif
 
