@@ -19,6 +19,7 @@
 
 #include <Arduino.h>
 #include <Wire.h>
+// #include <LED_CONFIG.h>
 
 // can be reduced to save some memory if smaller ICs are used
 #define MAX_NUMBER_OF_CELLS 15
@@ -153,4 +154,4 @@ class bq769x0 {
     // Methods
 };
 
-#endif // BQ769X0_H
+#endif // BQ769X0_H 
