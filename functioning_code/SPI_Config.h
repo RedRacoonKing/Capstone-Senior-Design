@@ -7,12 +7,16 @@
 #include <Arduino.h>
 #include <SD_MMC.h>
 
-#define SCK 36
-#define MISO 42
-#define MOSI 40
-#define SPI_CS 38
+#define SCK 36    // (CLK)
+#define MISO 42   // (DO)
+#define MOSI 40   // (DI)
+#define SPI_CS 38 // (CS)
 
 SPIClass spi = SPIClass(HSPI);
+int counter = 0;
+int file_counter = 0;
+char name_buffer[50];
+
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
   Serial.printf("Listing directory: %s\n", dirname);
@@ -189,13 +193,33 @@ void spi_setup(){
     } 
 }
 
-void spi_write(){
+void spi_write(float temp, float current, float voltage){
 
-    writeFile(SD, "/dummy.csv", "Temp,I_o,V_bat,Bat%\n");
-    appendFile(SD, "/dummy.csv", "0,1,2,3\n");
-    readFile(SD, "/dummy.csv");
+  char buffer[50];
+  sprintf(buffer, "%f,%f,%f,\n", temp, current, voltage);
+
+  if (counter == 0){
     Serial.println("spi_write(): Running");
+    file_counter += 1;
+    sprintf(name_buffer, "/log%d.csv", file_counter);
+    writeFile(SD, name_buffer, "Temp,I_o,V_bat,Bat%\n");
+    counter += 1;
+  }
+  
+  // TODO: add timing 
+  appendFile(SD, name_buffer, buffer);
+  Serial.println(buffer);
+  readFile(SD, name_buffer);
+  Serial.println();
     
+}
+
+void spi_write_test(){
+  Serial.println("spi_write(): Running");
+  writeFile(SD, "/dummy2.csv", "Temp,I_o,V_bat,Bat%\n");
+  appendFile(SD, "/dummy2.csv", "0,0,0,0\n");
+  appendFile(SD, "/dummy2.csv", "1,1,1,1\n");
+  readFile(SD, "/dummy2.csv");
 }
 
 #endif 
