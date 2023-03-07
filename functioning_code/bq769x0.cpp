@@ -25,8 +25,10 @@
 #include <Wire.h>     // I2C/TWI (for Battery Management IC)
 #include <math.h>     // log for thermistor calculation
 
-#include "bq769x0.h"
-#include "registers.h"
+#include <bq769x0.h>
+#include <registers.h>
+#include <stdlib.h>
+// #include <LED_CONFIG.h>
 
 // for the ISR to know the bq769x0 instance
 bq769x0* bq769x0::instancePointer = 0;
@@ -92,7 +94,10 @@ bq769x0::bq769x0(byte bqType, int bqI2CAddress)
 int bq769x0::begin(byte alertPin, byte bootPin)
 {
   // Wire.begin();        // join I2C bus
-  Wire.begin(7,9);
+  // Wire.begin(7,9);
+  // Serial.begin(115200);
+  // delay(1000);
+  // Serial.println("i2c_setup(): Running...");
 
   // initialize variables
   for (byte i = 0; i < numberOfCells; i++) {
@@ -111,12 +116,13 @@ int bq769x0::begin(byte alertPin, byte bootPin)
  
   if (determineAddressAndCrc())
   {
-    LOG_PRINTLN("Address and CRC detection successful");
-    LOG_PRINT("Address: ");
+    LOG_PRINTLN("- Address [y], CRC Detection [y]");
+    LOG_PRINT("- Address: ");
     LOG_PRINTLN(I2CAddress);
-    LOG_PRINT("CRC Enabled: ");
+    LOG_PRINT("- CRC Enabled: ");
     LOG_PRINTLN(crcEnabled);
 
+    // TODO: write new print statements for below
     // initial settings for bq769x0
     writeRegister(SYS_CTRL1, B00011000);  // switch external thermistor (TEMP_SEL) and ADC on (ADC_EN)
     writeRegister(SYS_CTRL2, B01000000);  // switch CC_EN on
@@ -152,10 +158,10 @@ bool bq769x0::determineAddressAndCrc(void)
   writeRegister(CC_CFG, 0x19);
   if (readRegister(CC_CFG) == 0x19) return true;
 
-  I2CAddress = 0x18;
-  crcEnabled = false;
-  writeRegister(CC_CFG, 0x19);
-  if (readRegister(CC_CFG) == 0x19) return true;
+  // I2CAddress = 0x18;
+  // crcEnabled = false;
+  // writeRegister(CC_CFG, 0x19);
+  // if (readRegister(CC_CFG) == 0x19) return true;
 
   I2CAddress = 0x08;
   crcEnabled = true;
@@ -200,49 +206,89 @@ int bq769x0::checkStatus()
       
       int secSinceInterrupt = (millis() - interruptTimestamp) / 1000;
       
-      // check for overrun of millis() or very slow running program
-      //if (abs(secSinceInterrupt - secSinceErrorCounter) > 2) {
-        //secSinceErrorCounter = secSinceInterrupt;
-      //}
+    //   check for overrun of millis() or very slow running program
+      int tempSec = secSinceInterrupt - secSinceErrorCounter;
+      if (abs(tempSec) > 2) {
+        secSinceErrorCounter = secSinceInterrupt;
+      }
       
       // called only once per second
       if (secSinceInterrupt >= secSinceErrorCounter)
       {
-        if (sys_stat.regByte & B00100000) { // XR error
-          // datasheet recommendation: try to clear after waiting a few seconds
-          if (secSinceErrorCounter % 3 == 0) {
-            LOG_PRINTLN(F("Clearing XR error"));
-            writeRegister(SYS_STAT, B00100000);
-          }
-        }
         if (sys_stat.regByte & B00010000) { // Alert error
           if (secSinceErrorCounter % 10 == 0) {
+            // led_fault();
+            // stop balancing equations
+            // keep FETS open
+
+
+
+
             LOG_PRINTLN(F("Clearing Alert error"));
             writeRegister(SYS_STAT, B00010000);
           }
         }
+
+        if (sys_stat.regByte & B00100000) { // XR error
+          // datasheet recommendation: try to clear after waiting a few seconds
+          if (secSinceErrorCounter % 3 == 0) {
+            // led_fault();
+
+
+
+
+
+
+            LOG_PRINTLN(F("Clearing XR error"));
+            writeRegister(SYS_STAT, B00100000);
+          }
+        }
+
         if (sys_stat.regByte & B00001000) { // UV error
           updateVoltages();
           if (cellVoltages[idCellMinVoltage] > minCellVoltage) {
+            // led_fault();
+
+
+
+
             LOG_PRINTLN(F("Clearing UV error"));
             writeRegister(SYS_STAT, B00001000);
           }
         }
+
         if (sys_stat.regByte & B00000100) { // OV error
           updateVoltages();
           if (cellVoltages[idCellMaxVoltage] < maxCellVoltage) {
+            // led_fault();
+
+
+
+
             LOG_PRINTLN(F("Clearing OV error"));
             writeRegister(SYS_STAT, B00000100);
           }
         }
+
         if (sys_stat.regByte & B00000010) { // SCD
           if (secSinceErrorCounter % 60 == 0) {
+            // led_fault();
+
+
+
+
             LOG_PRINTLN(F("Clearing SCD error"));
             writeRegister(SYS_STAT, B00000010);
           }
         }
+
         if (sys_stat.regByte & B00000001) { // OCD
           if (secSinceErrorCounter % 60 == 0) {
+            // led_fault();
+
+
+
+
             LOG_PRINTLN(F("Clearing OCD error"));
             writeRegister(SYS_STAT, B00000001);
           }
@@ -671,7 +717,7 @@ void bq769x0::updateTemperatures()
 
 void bq769x0::updateCurrent(bool ignoreCCReadyFlag)
 {
-  LOG_PRINTLN("updateCurrent");
+  // LOG_PRINTLN("updateCurrent");
   int16_t adcVal = 0;
   regSYS_STAT_t sys_stat;
   sys_stat.regByte = readRegister(SYS_STAT);
@@ -697,7 +743,7 @@ void bq769x0::updateCurrent(bool ignoreCCReadyFlag)
     }
 
     writeRegister(SYS_STAT, B10000000);  // Clear CC ready flag	
-    LOG_PRINTLN("updateCurrent: updated, CC flag cleared");
+    // LOG_PRINTLN("updateCurrent: updated, CC flag cleared");
   }
 }
 
@@ -707,7 +753,7 @@ void bq769x0::updateCurrent(bool ignoreCCReadyFlag)
 
 void bq769x0::updateVoltages()
 {
-  LOG_PRINTLN("updateVoltages");
+  // LOG_PRINTLN("updateVoltages");
   long adcVal = 0;
   char buf[4];
   int connectedCells = 0;
@@ -793,7 +839,7 @@ void bq769x0::updateVoltages()
 
 void bq769x0::writeRegister(byte address, int data)
 {
-  LOG_PRINT("write: ");
+  LOG_PRINT("Write: ");
   LOG_PRINT(byte2char(address));
   LOG_PRINT(" --> ");
   LOG_PRINT(byte2char(data));
