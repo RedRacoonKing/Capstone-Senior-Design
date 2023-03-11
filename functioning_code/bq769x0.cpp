@@ -93,12 +93,6 @@ bq769x0::bq769x0(byte bqType, int bqI2CAddress)
 
 int bq769x0::begin(byte alertPin, byte bootPin)
 {
-  // Wire.begin();        // join I2C bus
-  // Wire.begin(7,9);
-  // Serial.begin(115200);
-  // delay(1000);
-  // Serial.println("i2c_setup(): Running...");
-
   // initialize variables
   for (byte i = 0; i < numberOfCells; i++) {
     cellVoltages[i] = 0;
@@ -116,16 +110,17 @@ int bq769x0::begin(byte alertPin, byte bootPin)
  
   if (determineAddressAndCrc())
   {
-    LOG_PRINTLN("- Address [y], CRC Detection [y]");
-    LOG_PRINT("- Address: ");
-    LOG_PRINTLN(I2CAddress);
     LOG_PRINT("- CRC Enabled: ");
     LOG_PRINTLN(crcEnabled);
 
     // TODO: write new print statements for below
     // initial settings for bq769x0
     writeRegister(SYS_CTRL1, B00011000);  // switch external thermistor (TEMP_SEL) and ADC on (ADC_EN)
+    LOG_PRINTLN("- Write: (B00011000) --> SYS_CTRL1 Register");
+    LOG_PRINTLN("     - Switch External Thermistor (TEMP_SEL) & ADC On (ADC_EN)");
     writeRegister(SYS_CTRL2, B01000000);  // switch CC_EN on
+    LOG_PRINTLN("- Write: (B01000000) --> SYS_CTRL2 Register");
+    LOG_PRINTLN("     - Switch CC_EN ON");
 
     // attach ALERT interrupt to this instance
     instancePointer = this;
@@ -150,27 +145,29 @@ int bq769x0::begin(byte alertPin, byte bootPin)
 
 bool bq769x0::determineAddressAndCrc(void)
 {
-  LOG_PRINTLN("Determining i2c address and whether CRC is enabled");
+  // LOG_PRINTLN("Determining i2c address and whether CRC is enabled");
 
   // check for each address and CRC combination while also set CC_CFG to 0x19 as per datasheet
-  I2CAddress = 0x08;
-  crcEnabled = false;
-  writeRegister(CC_CFG, 0x19);
-  if (readRegister(CC_CFG) == 0x19) return true;
+  // I2CAddress = 0x08;
+  // crcEnabled = false;
+  // writeRegister(CC_CFG, 0x19);
+  // if (readRegister(CC_CFG) == 0x19) return true;
 
   // I2CAddress = 0x18;
   // crcEnabled = false;
   // writeRegister(CC_CFG, 0x19);
   // if (readRegister(CC_CFG) == 0x19) return true;
 
-  I2CAddress = 0x08;
-  crcEnabled = true;
-  writeRegister(CC_CFG, 0x19);
-  if (readRegister(CC_CFG) == 0x19) return true;
+  // I2CAddress = 0x08;
+  // crcEnabled = true;
+  // writeRegister(CC_CFG, 0x19);
+  // if (readRegister(CC_CFG) == 0x19) return true;
 
   I2CAddress = 0x18;
   crcEnabled = true;
   writeRegister(CC_CFG, 0x19);
+  LOG_PRINTLN("- For optimal performance, these bits should be programmed to 0x19 upon device startup.");
+  LOG_PRINTLN("- Write: (0x19) --> CC_CFG Register");
   if (readRegister(CC_CFG) == 0x19) return true;
 
   return false;
@@ -839,10 +836,10 @@ void bq769x0::updateVoltages()
 
 void bq769x0::writeRegister(byte address, int data)
 {
-  LOG_PRINT("Write: ");
-  LOG_PRINT(byte2char(address));
-  LOG_PRINT(" --> ");
-  LOG_PRINT(byte2char(data));
+  // LOG_PRINT("Write: ");
+  // LOG_PRINT(byte2char(address));
+  // LOG_PRINT(" --> ");
+  // LOG_PRINT(byte2char(data));
   uint8_t crc = 0;
   char buf[3];
   buf[0] = (char) address;
@@ -861,12 +858,12 @@ void bq769x0::writeRegister(byte address, int data)
     buf[2] = crc;
 
     Wire.write(buf[2]); // writes CRC
-    LOG_PRINT(" CRC:");
-    LOG_PRINT(byte2char(buf[2]));
+    // LOG_PRINT(" CRC:");
+    // LOG_PRINT(byte2char(buf[2]));
   }
 
   Wire.endTransmission();
-  LOG_PRINTLN();
+  // LOG_PRINTLN();
 }
 
 //----------------------------------------------------------------------------
